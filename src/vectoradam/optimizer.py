@@ -1,3 +1,4 @@
+# src/vectoradam/optimizer.py
 from __future__ import annotations
 
 from typing import Callable, Optional, overload

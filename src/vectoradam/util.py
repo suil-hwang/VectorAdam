@@ -1,3 +1,4 @@
+# src/vectoradam/util.py
 from __future__ import annotations
 
 import numpy as np
@@ -9,18 +10,20 @@ import torch
 
 def laplacian_uniform_2d(v: torch.Tensor, l: torch.Tensor) -> torch.Tensor:
     V = v.shape[0]
-    L = l.shape[0]
-    
-    #neighbor indices 
-    ii = l[:,[1,0]].flatten()
-    jj = l[:,[0,1]].flatten()
-    adj = torch.stack([torch.cat([ii,jj]), torch.cat([jj,ii])], dim=0).unique(dim=1)
-    adj_values = torch.ones(adj.shape[1], device='cuda', dtype=torch.float)    
+
+    if l.device != v.device:
+        l = l.to(v.device)
+
+    #neighbor indices
+    ii = l[:, [1, 0]].flatten()
+    jj = l[:, [0, 1]].flatten()
+    adj = torch.stack([torch.cat([ii, jj]), torch.cat([jj, ii])], dim=0).unique(dim=1)
+    adj_values = torch.ones(adj.shape[1], device=v.device, dtype=v.dtype)
     diag_idx = adj[0]
     idx = torch.cat((adj, torch.stack((diag_idx, diag_idx), dim=0)), dim=1)
     values = torch.cat((-adj_values, adj_values))
-    L = torch.sparse_coo_tensor(idx, values, (V, V)).coalesce()
-    return L
+    laplacian = torch.sparse_coo_tensor(idx, values, (V, V)).coalesce()
+    return laplacian
 
 def plot_mesh2d(v, l, y_lim=None, x_lim=None, return_ax=False, showfig=False, filename=None):
     #with sns.axes_style('dark'):
