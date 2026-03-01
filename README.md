@@ -11,11 +11,11 @@ NeurIPS 2022
 
 To use our VectorAdam implementation, you just need to have PyTorch installed in your environment.
 
-The demo script are tested with PyTorch=1.11 and matplotlib=3.5.1. We also provide the environment file `vectoradam.yml`, which can be used to create a conda environment as in 
+The demo scripts were tested with PyTorch=1.11 and matplotlib=3.5.1. We also provide the environment file `environments.yml`, which can be used to create a conda environment as in
 ```
-conda env create -f vectoradam.yml -n [env-name]
+conda env create -f environments.yml -n [env-name]
 ```
-Note that this is tested on Ubuntu 18.04 only.
+For the updated Windows setup, `environments.yml` targets Python 3.10 with CUDA 11.8.
 
 ## Usage
 

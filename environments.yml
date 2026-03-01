@@ -1,0 +1,16 @@
+name: vectoradam
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pytorch
+  - pytorch-cuda=11.8
+  - numpy
+  - matplotlib
+  - seaborn
+  - tqdm
+  - notebook
+  - pip

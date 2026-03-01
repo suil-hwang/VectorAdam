@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Callable, Optional, overload
+
 import torch
 
 class VectorAdam(torch.optim.Optimizer):
@@ -8,14 +12,29 @@ class VectorAdam(torch.optim.Optimizer):
     def __setstate__(self, state):
         super(VectorAdam, self).__setstate__(state)
 
+    @overload
+    def step(self, closure: None = None) -> None:
+        ...
+
+    @overload
+    def step(self, closure: Callable[[], float]) -> float:
+        ...
+
     @torch.no_grad()
-    def step(self):
+    def step(self, closure: Optional[Callable[[], float]] = None) -> Optional[float]:
+        loss = None
+        if closure is not None:
+            with torch.enable_grad():
+                loss = closure()
+
         for group in self.param_groups:
             lr = group['lr']
             b1, b2 = group['betas']
             eps = group['eps']
             axis = group['axis']
             for p in group["params"]:
+                if p.grad is None:
+                    continue
                 state = self.state[p]
                 # Lazy initialization
                 if len(state) == 0:
@@ -41,3 +60,5 @@ class VectorAdam(torch.optim.Optimizer):
                 m2 = g2 / (1-(b2**state["step"]))
                 gr = m1 / (eps + m2.sqrt())
                 p.data.sub_(gr, alpha=lr)
+
+        return loss

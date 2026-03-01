@@ -1,11 +1,13 @@
-import numpy as np 
+from __future__ import annotations
+
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
-import torch 
+import torch
 
-def laplacian_uniform_2d(v, l):
+def laplacian_uniform_2d(v: torch.Tensor, l: torch.Tensor) -> torch.Tensor:
     V = v.shape[0]
     L = l.shape[0]
     
@@ -61,7 +63,7 @@ def create_circle(n_points=20, radius=5, noise_level=1e-1):
     return vertices, lines
 
 def plotMesh2D(v_in=None, l_in=None, vn_in=None, ln_in=None, rv_in=None,
-               v_tgt=None, l_tgt=None, vn_tgt=None, ln_tgt=None, rv_tgt=None, sdf_error = None,   
+               v_tgt=None, l_tgt=None, vn_tgt=None, ln_tgt=None, rv_tgt=None, sdf_error=None,
                nr=None, gradient=None, sdf=None, showfig=False, savefig=False, figname="image.png"):
     '''
     See https://towardsdatascience.com/the-many-ways-to-call-axes-in-matplotlib-2667a7b06e06#:~:text=Rarely%2C%20as%20for%20figure%20with,can%20find%20an%20example%20here) 
@@ -71,6 +73,9 @@ def plotMesh2D(v_in=None, l_in=None, vn_in=None, ln_in=None, rv_in=None,
         - vertices: numpy array of shape [nv, 3] of ng groups of vertices to be visualized with different color 
         - lines: [ng, nl, 2]
     '''
+    if v_in is None or l_in is None:
+        raise ValueError("v_in and l_in must be provided.")
+
     #>>> open a figure
     n_rows = 1
     n_cols = 0
@@ -102,7 +107,7 @@ def plotMesh2D(v_in=None, l_in=None, vn_in=None, ln_in=None, rv_in=None,
     if sdf_error is not None:
         for i in range(line_centers.shape[0]):
             ax.annotate("{:.2f}".format(sdf_error[i]), line_centers[i])
-            ax.annotate(i, line_centers[i]-np.array([0.3,0]),color='r')
+            ax.annotate(str(i), line_centers[i]-np.array([0.3, 0]), color='r')
 
     #> visualize normals
     if vn_in is not None:
@@ -113,6 +118,8 @@ def plotMesh2D(v_in=None, l_in=None, vn_in=None, ln_in=None, rv_in=None,
 
     #>>> plot rays on input mesh
     if rv_in is not None:
+        if nr is None:
+            raise ValueError("nr must be provided when rv_in is not None.")
         # print(rv_in.shape)
         rv_in = rv_in.reshape(-1,2) #[ray0p0,ray0p1,ray1p0,ray1p1,...]
         # print(rv_in.shape)
@@ -154,6 +161,8 @@ def plotMesh2D(v_in=None, l_in=None, vn_in=None, ln_in=None, rv_in=None,
 
         #>>> plot rays on target mesh 
         if rv_tgt is not None:
+            if nr is None:
+                raise ValueError("nr must be provided when rv_tgt is not None.")
             #> get data
             rv_tgt = rv_tgt.reshape(-1,2) #[ray0p0,ray0p1,ray1p0,ray1p1,...]
             rl_tgt = np.array([[i*2,i*2+1] for i in range(rv_tgt.shape[0]//2)]) 
@@ -171,9 +180,7 @@ def plotMesh2D(v_in=None, l_in=None, vn_in=None, ln_in=None, rv_in=None,
         plt.savefig(figname)
     
     canvas.draw()
-    width, height = fig.get_size_inches() * fig.get_dpi()
-    image = np.frombuffer(canvas.tostring_rgb(), dtype='uint8')
-    image = image.reshape(int(height), int(width), 3)
+    image = np.asarray(canvas.buffer_rgba(), dtype=np.uint8)[:, :, :3]
     image = np.transpose(image, (2,0,1))
     plt.close()
     return image
